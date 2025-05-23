@@ -4,10 +4,11 @@
 
 #include "raylib.h"
 #include "../Include/main.h" // get_data_file()
-#include "../Include/aux_camera.h" // control_camera()
-#include "../Include/checkpoints.h" // draw_checkpoints()
+#include "../Include/camera.h" // control_camera()
+#include "../Include/nodes.h" // draw_checkpoints()
 
 #define MAX_CHECKPOINTS 1024
+#define DEBUG
 
 int main(int argc, char *argv[]) {
         FILE *data_file = get_data_file(argc, argv);
@@ -19,6 +20,7 @@ int main(int argc, char *argv[]) {
 
         InitWindow(width, height, title);
         Color Background = LIGHTGRAY;
+        Font dtm = LoadFont("/usr/share/fonts/EnvyCodeR/EnvyCodeRNerdFont-Regular.ttf");
         
         Camera3D camera = {
                 .position = (Vector3){ 10.0f, 10.0f, 10.0f },
@@ -50,7 +52,7 @@ int main(int argc, char *argv[]) {
                 // usual
                 BeginDrawing(); 
                 ClearBackground(Background);
-                DrawRectangleRec(exit_button, DARKGRAY);
+                DrawRectangleRec(exit_button, DARKGRAY); 
                 BeginMode3D(camera);
                         DrawCube((Vector3){0, 0, 0}, 10, 0, 10, DARKGREEN);
                         DrawGrid(10, 1.0f);
@@ -58,9 +60,21 @@ int main(int argc, char *argv[]) {
                         control_camera(&camera);
                         draw_checkpoints(data_file);
                 EndMode3D();
+                
+                // draw cam and target pos
+                char cam_buffer[80], tar_buffer[80];
+                sprintf(cam_buffer, "cam: %.01f, %.01f, %.01f",
+                        camera.position.x, camera.position.y, camera.position.z
+                );
+                sprintf(tar_buffer, "tar: %.01f, %.01f, %.01f",
+                        camera.target.x, camera.target.y, camera.target
+                );
+                DrawTextEx(dtm, cam_buffer, (Vector2){width-200, 10}, 17.0, 1.0, BLACK);
+                DrawTextEx(dtm, tar_buffer, (Vector2){width-200, 25}, 17.0, 1.0, BLACK);
                 EndDrawing();
         }
         
+        UnloadFont(dtm);
         CloseWindow();
         fclose(data_file);
         return 0;

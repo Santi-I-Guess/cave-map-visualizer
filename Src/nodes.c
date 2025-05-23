@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "raylib.h"
-#include "../Include/checkpoints.h"
+#include "../Include/nodes.h"
 
 void draw_checkpoints(FILE *data_file) {
         fseek(data_file, 0, SEEK_SET);
