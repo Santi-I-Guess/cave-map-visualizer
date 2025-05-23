@@ -10,17 +10,20 @@
 #define MAX_CHECKPOINTS 1024
 #define DEBUG
 
+// don't think this is best practice
+
 int main(int argc, char *argv[]) {
         FILE *data_file = get_data_file(argc, argv);
         if (!data_file)
                 return 1;
 
-        const int width = 1280, height = 800;
+        const int width = 1280;
+        const int height = 800;
         const char title[80] = "Cave Mapping Visualizer";
+        Font dtm = LoadFont("/usr/share/fonts/EnvyCodeR/EnvyCodeRNerdFont-Regular.ttf");
 
         InitWindow(width, height, title);
         Color Background = LIGHTGRAY;
-        Font dtm = LoadFont("/usr/share/fonts/EnvyCodeR/EnvyCodeRNerdFont-Regular.ttf");
         
         Camera3D camera = {
                 .position = (Vector3){ 10.0f, 10.0f, 10.0f },
@@ -53,11 +56,10 @@ int main(int argc, char *argv[]) {
                 BeginDrawing(); 
                 ClearBackground(Background);
                 DrawRectangleRec(exit_button, DARKGRAY); 
+                control_camera(&camera);
                 BeginMode3D(camera);
                         DrawCube((Vector3){0, 0, 0}, 10, 0, 10, DARKGREEN);
                         DrawGrid(10, 1.0f);
-                        // UpdateCamera(&camera, CAMERA_FREE);
-                        control_camera(&camera);
                         draw_checkpoints(data_file);
                 EndMode3D();
                 

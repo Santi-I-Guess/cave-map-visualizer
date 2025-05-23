@@ -1,5 +1,6 @@
+#include <math.h> // atan2(), sqrt()
 #include <stdlib.h> // abs()
-#include <math.h>
+#include <stdio.h> // sprintf
 
 #include "raylib.h"
 #include "../Include/camera.h"
@@ -48,28 +49,38 @@ void control_camera(Camera *camera) {
                 camera->position.y -= fly_y; camera->target.y -= fly_y;
         }
 
-        else if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
-                double curr_theta = (camera->target.z - camera->position.z)
-                        / (camera->target.x - camera->position.x);
-                double curr_radius = sqrt(
+        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+                float angle = atan2(
+                        camera->position.z - camera->target.z,
+                        camera->position.x - camera->target.x
+                );
+                char angle_buffer[80];
+                sprintf(angle_buffer, "angle: %.01f", angle);
+                DrawText(angle_buffer, 1280-200, 40, 17.0, BLACK);
+
+                float radius = sqrt(
                         pow(camera->target.z - camera->position.z, 2) +
                         pow(camera->target.x - camera->position.x, 2)
                 );
-                
-                // rectangular -> polar -> rectangular
-                // wow, this is very fucked rn
+
                 Vector2 mouse_deltas = GetMouseDelta();
-                float change = 0.1;
-                if (mouse_deltas.x > 0) {
-                        camera->target.z = curr_radius * sin(curr_theta + change) + camera->target.z;
-                        camera->target.x = curr_radius * cos(curr_theta + change) + camera->target.x;
-                } if (mouse_deltas.x < 0) {
-                        camera->target.z = curr_radius * sin(curr_theta - change) + camera->target.z;
-                        camera->target.x = curr_radius * cos(curr_theta - change) + camera->target.x;
+                float change_xz = 0.03;
+                float change_y = 0.5;
+                printf("\e[35mx:%.01f y:%.01f\n\e[0m", mouse_deltas.x, mouse_deltas.y);
+                if (mouse_deltas.x > 2) {
+                        camera->target.x = radius * cos(angle + change_xz) + camera->position.x;
+                        camera->target.z = radius * sin(angle + change_xz) + camera->position.z;
+                } if (mouse_deltas.x < -2) {
+                        camera->target.x = radius * cos(angle - change_xz) + camera->position.x;
+                        camera->target.z = radius * sin(angle - change_xz) + camera->position.z;
+                } if (mouse_deltas.y > 1) {
+                        camera->target.y -= change_y;
+                } if (mouse_deltas.y < -1) {
+                        camera->target.y += change_y;
                 }
-        } else if (mouse_scrolling > 0) {
+        } if (mouse_scrolling > 0) {
                 // zoom in, slightly add or sub to bring camera within 2x2x2 of camera
-        } else if (mouse_scrolling < 0) {
+        } if (mouse_scrolling < 0) {
                 // zoom out
         }
 
