@@ -1,6 +1,6 @@
 
-#ifndef CHECKPOINTS_H
-#define CHECKPOINTS_H
+#ifndef NODES_H
+#define NODES_H
 
 #include "raylib.h"
 

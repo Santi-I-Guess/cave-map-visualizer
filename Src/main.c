@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h> // printf(), tmpfile()
 #include <unistd.h> // access()
+#include <math.h> // atan2()
 
 #include "raylib.h"
 #include "../Include/main.h" // get_data_file()
@@ -8,23 +9,18 @@
 #include "../Include/nodes.h" // draw_checkpoints()
 
 #define MAX_CHECKPOINTS 1024
-#define DEBUG
 
-// don't think this is best practice
+const int width = 1280;
+const int height = 800;
 
 int main(int argc, char *argv[]) {
         FILE *data_file = get_data_file(argc, argv);
         if (!data_file)
                 return 1;
 
-        const int width = 1280;
-        const int height = 800;
         const char title[80] = "Cave Mapping Visualizer";
-        Font dtm = LoadFont("/usr/share/fonts/EnvyCodeR/EnvyCodeRNerdFont-Regular.ttf");
-
         InitWindow(width, height, title);
-        Color Background = LIGHTGRAY;
-        
+        Font dtm = LoadFont("/usr/share/fonts/JetBrains/JetBrainsMonoNerdFont-Medium.ttf");
         Camera3D camera = {
                 .position = (Vector3){ 10.0f, 10.0f, 10.0f },
                 .target   = (Vector3){ 0.0f, 0.0f, 0.0f },
@@ -34,45 +30,27 @@ int main(int argc, char *argv[]) {
         };
 
         bool exit_window_requested = false;
-        Rectangle exit_button = { 10, 10, 50, 50 };
+        Rectangle exit_button = { 10, 10, 30, 30 };
         SetExitKey(KEY_NULL);
-
         SetTargetFPS(60);
         UpdateCamera(&camera, CAMERA_CUSTOM);
         while (!exit_window_requested) {
-                // exit logic
-                if (WindowShouldClose() || 
+                exit_window_requested = WindowShouldClose() || 
                         (CheckCollisionPointRec(GetMousePosition(), exit_button)
-                        && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
-                ))
-                        exit_window_requested = true;
-                else
-                        exit_window_requested = false;
-
+                        && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
                 if (exit_window_requested)
                         break;
 
-                // usual
                 BeginDrawing(); 
-                ClearBackground(Background);
+                ClearBackground(LIGHTGRAY);
                 DrawRectangleRec(exit_button, DARKGRAY); 
                 control_camera(&camera);
                 BeginMode3D(camera);
                         DrawCube((Vector3){0, 0, 0}, 10, 0, 10, DARKGREEN);
                         DrawGrid(10, 1.0f);
                         draw_checkpoints(data_file);
-                EndMode3D();
-                
-                // draw cam and target pos
-                char cam_buffer[80], tar_buffer[80];
-                sprintf(cam_buffer, "cam: %.01f, %.01f, %.01f",
-                        camera.position.x, camera.position.y, camera.position.z
-                );
-                sprintf(tar_buffer, "tar: %.01f, %.01f, %.01f",
-                        camera.target.x, camera.target.y, camera.target
-                );
-                DrawTextEx(dtm, cam_buffer, (Vector2){width-200, 10}, 17.0, 1.0, BLACK);
-                DrawTextEx(dtm, tar_buffer, (Vector2){width-200, 25}, 17.0, 1.0, BLACK);
+                EndMode3D(); 
+                draw_stats(&camera, &dtm); // keep last
                 EndDrawing();
         }
         
@@ -84,6 +62,12 @@ int main(int argc, char *argv[]) {
 
 FILE *get_data_file(int argc, char *argv[]) {
         FILE *data_file;
+
+        if (argc > 2 || argc < 1) { // prevents -Wmaybe-uninitialized
+                printf("\e[31mGiven wrong amount of arguments (>1)\n\e[0m");
+                return NULL;
+        }
+
         if (argc == 1) {
                 printf("\e[35mStarting with raw file\n\e[0m");
                 data_file = tmpfile();
@@ -102,9 +86,21 @@ FILE *get_data_file(int argc, char *argv[]) {
                         return NULL;
                 }
                 printf("\e[35mWorking with %s\e[0m\n", argv[1]);
-        } else {
-                printf("\e[31Given wrong amount of arguments (>1)\n\e[0m");
-                return NULL;
         }
         return data_file;
+}
+
+void draw_stats(Camera *camera, Font *le_font) {
+        // ttar and ppos just to stay within 80 chars as possible
+        Vector3 *ttar = &(camera->target), *ppos = &(camera->position);
+        float diff_x = camera->position.x - camera->target.x;
+        float diff_z = camera->position.z - camera->target.z;
+
+        char cam_buffer[80], tar_buffer[80], ang_buffer[80];
+        sprintf(cam_buffer, "camera: %.01f, %.01f, %.01f", ppos->x, ppos->y, ppos->z);
+        sprintf(tar_buffer, "target: %.01f, %.01f, %.01f", ttar->x, ttar->y, ttar->z);
+        sprintf(ang_buffer, "angle: %.3f", atan2(diff_z, diff_x));
+        DrawTextEx(*le_font, cam_buffer, (Vector2){width-230, 10}, 18.0, 1.0, BLACK);
+        DrawTextEx(*le_font, tar_buffer, (Vector2){width-230, 25}, 18.0, 1.0, BLACK);
+        DrawTextEx(*le_font, ang_buffer, (Vector2){width-230, 40}, 18.0, 1.0, BLACK);
 }
