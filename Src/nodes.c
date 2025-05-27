@@ -4,7 +4,8 @@
 #include "raylib.h"
 #include "../Include/nodes.h"
 
-// doesn't draw RN
+// should i load the points on the heap?
+
 void draw_checkpoints(FILE *data_file) {
         fseek(data_file, 0, SEEK_SET);
         while (!feof(data_file)) {

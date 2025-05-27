@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
                 BeginMode3D(camera);
                         DrawCube((Vector3){0, 0, 0}, 10, 0, 10, DARKGREEN);
                         DrawGrid(10, 1.0f);
-                        draw_checkpoints(data_file);
+                        // draw_checkpoints(data_file);
                 EndMode3D(); 
                 draw_stats(&camera, &dtm); // keep last
                 EndDrawing();
@@ -92,7 +92,7 @@ FILE *get_data_file(int argc, char *argv[]) {
 
 void draw_stats(Camera *camera, Font *le_font) {
         // ttar and ppos just to stay within 80 chars as possible
-        Vector3 *ttar = &(camera->target), *ppos = &(camera->position);
+        Vector3 *ppos = &(camera->position), *ttar = &(camera->target);
         float diff_x = camera->position.x - camera->target.x;
         float diff_z = camera->position.z - camera->target.z;
 
