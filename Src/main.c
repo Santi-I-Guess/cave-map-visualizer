@@ -7,6 +7,7 @@
 #include "../Include/main.h" // get_data_file()
 #include "../Include/camera.h" // control_camera()
 #include "../Include/nodes.h" // draw_checkpoints()
+#include "../Include/sqlite3.h"
 
 #define MAX_CHECKPOINTS 1024
 
@@ -29,6 +30,9 @@ int main(int argc, char *argv[]) {
                 .projection = CAMERA_PERSPECTIVE
         };
 
+        // shits and giggles
+        Vector3 sphere = { 5, 3, 0 };
+
         bool exit_window_requested = false;
         Rectangle exit_button = { 10, 10, 30, 30 };
         SetExitKey(KEY_NULL);
@@ -43,13 +47,13 @@ int main(int argc, char *argv[]) {
 
                 BeginDrawing(); 
                 ClearBackground(LIGHTGRAY);
-                DrawRectangleRec(exit_button, DARKGRAY); 
                 control_camera(&camera);
                 BeginMode3D(camera);
-                        DrawCube((Vector3){0, 0, 0}, 10, 0, 10, DARKGREEN);
-                        DrawGrid(10, 1.0f);
+                        DrawCube((Vector3){0, 0, 0}, 100, 0, 100, DARKGREEN);
+                        DrawGrid(100, 1.0f);
                         // draw_checkpoints(data_file);
                 EndMode3D(); 
+                DrawRectangleRec(exit_button, DARKGRAY); 
                 draw_stats(&camera, &dtm); // keep last
                 EndDrawing();
         }
@@ -100,7 +104,7 @@ void draw_stats(Camera *camera, Font *le_font) {
         sprintf(cam_buffer, "camera: %.01f, %.01f, %.01f", ppos->x, ppos->y, ppos->z);
         sprintf(tar_buffer, "target: %.01f, %.01f, %.01f", ttar->x, ttar->y, ttar->z);
         sprintf(ang_buffer, "angle: %.3f", atan2(diff_z, diff_x));
-        DrawTextEx(*le_font, cam_buffer, (Vector2){width-230, 10}, 18.0, 1.0, BLACK);
-        DrawTextEx(*le_font, tar_buffer, (Vector2){width-230, 25}, 18.0, 1.0, BLACK);
-        DrawTextEx(*le_font, ang_buffer, (Vector2){width-230, 40}, 18.0, 1.0, BLACK);
+        DrawTextEx(*le_font, cam_buffer, (Vector2){width-270, 10}, 18.0, 1.0, BLACK);
+        DrawTextEx(*le_font, tar_buffer, (Vector2){width-270, 25}, 18.0, 1.0, BLACK);
+        DrawTextEx(*le_font, ang_buffer, (Vector2){width-270, 40}, 18.0, 1.0, BLACK);
 }
