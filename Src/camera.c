@@ -15,33 +15,45 @@ void control_camera(Camera *camera) {
         Vector3 *ppos = &(camera->position), *ttar = &(camera->target);
         Vector3 delta_cam = { 0, 0, 0 }, delta_tar = { 0, 0, 0 };
 
+        // common calculations
         float diff_x = ppos->x - ttar->x, diff_z = ppos->z - ttar->z;
         float cam_radius = sqrt(pow(diff_x, 2) + pow(diff_z, 2));
         float cam_angle = atan2(diff_z, diff_x);
+        float sin_change = cam_radius * sin(cam_angle);
+        float cos_change = cam_radius * cos(cam_angle); 
 
-        if (IsKeyDown(KEY_W) || IsKeyDown(KEY_S)) {
-                float change = (IsKeyDown(KEY_W)) ? -1 : 1;
-                delta_cam.x += diff_x * change;
-                delta_cam.z += diff_x * change;
-                delta_tar.x += diff_z * change;
-                delta_tar.z += diff_z * change;
-        } if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D)) {
-                float x_sign = (IsKeyDown(KEY_A)) ? -1.0 : 1.0;
-                float z_sign = (IsKeyDown(KEY_A)) ? 1.0 : -1.0;
-                float sin_change = cam_radius * sin(cam_angle);
-                float cos_change = cam_radius * cos(cam_angle); 
-                delta_cam.x += sin_change * x_sign;
-                delta_cam.z += cos_change * z_sign;
-                delta_tar.x += sin_change * x_sign;
-                delta_tar.z += cos_change * z_sign;
+        if (IsKeyDown(KEY_W)) {
+                delta_cam.x -= diff_x; delta_cam.z -= diff_z;
+                delta_tar.x -= diff_x; delta_tar.z -= diff_z;
+        } if (IsKeyDown(KEY_S)) {
+                delta_cam.x += diff_x; delta_cam.z += diff_z;
+                delta_tar.x += diff_x; delta_tar.z += diff_z;
+        } if (IsKeyDown(KEY_A)) {
+                delta_cam.x -= sin_change; delta_cam.z += cos_change;
+                delta_tar.x -= sin_change; delta_tar.z += cos_change;
+        } if (IsKeyDown(KEY_D)) {
+                delta_cam.x += sin_change; delta_cam.z -= cos_change;
+                delta_tar.x += sin_change; delta_tar.z -= cos_change;
         }
 
         if (IsKeyDown(KEY_SPACE)) {
-                delta_cam.y += 0.1;
-                delta_tar.y += 0.1;
+                ppos->y += 0.3;
+                ttar->y += 0.3;
         } else if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
-                delta_cam.y -= 0.1;
-                delta_tar.y -= 0.1;
+                ppos->y -= 0.3;
+                ttar->y -= 0.3;
+        }
+        
+        Vector2 mouse_deltas = GetMouseDelta();
+        float angle_change = 0.1;
+        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+                // mouse velocity gets ignored in normalization
+                ttar->y -= mouse_deltas.y / 30.0;
+
+                // now, for the fated and fucking hated xz rotations
+                // what the fuck is messing me up?
+                // it's either the math, the implementation, or the library
+                // without change, it just turns ttar x and z into cam's...
         }
 
         int reset_pos = 20, reset_tar = 0;

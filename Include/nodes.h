@@ -3,6 +3,7 @@
 #define NODES_H
 
 #include "raylib.h"
+#include "sqlite3.h"
 
 typedef struct {
         int x;
@@ -12,7 +13,6 @@ typedef struct {
         Color color;
 } Node;
 
-void draw_checkpoints(FILE *data_file);
-
+sqlite3 *database_open(int argc, char **argv);
 
 #endif

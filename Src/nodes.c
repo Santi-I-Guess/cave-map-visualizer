@@ -1,30 +1,47 @@
 #include <stdio.h> // FILE*
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "raylib.h"
 #include "../Include/nodes.h"
+#include "../Include/sqlite3.h"
 
-// should i load the points on the heap?
-
-void draw_checkpoints(FILE *data_file) {
-        fseek(data_file, 0, SEEK_SET);
-        while (!feof(data_file)) {
-                char buffer[80];
-                fgets(buffer, sizeof(buffer), data_file);
-                int curr_x, curr_y, curr_z;
-                int next_x, next_y, next_z;
-                if (buffer[0] == 'P') {
-                        sscanf(buffer, "P %d %d %d", &curr_x, &curr_y, &curr_z);
-                        DrawSphere((Vector3){curr_x, curr_y, curr_z}, 0.5, RED);
-                } else if (buffer[0] == 'C') {
-                        sscanf(buffer, "C %d %d %d %d %d %d",
-                               &curr_x, &curr_y, &curr_z, &next_x, &next_y, &next_z);
-                        DrawCylinderEx(
-                                (Vector3){curr_x, curr_y, curr_z},
-                                (Vector3){next_x, next_y, next_z},
-                                0.3, 0.3, 3, ORANGE
-                        );
+sqlite3 *database_open(int argc, char **argv) {
+        sqlite3 *db;
+        int result = SQLITE_OK;
+        switch (argc) {
+        case 1:
+                // between ":memory:" and ""
+                result = sqlite3_open(":memory:", &db);
+                printf("\e[35mloading temporary database\n\e[0m");
+                break;
+        case 2:
+                int result = access(argv[1], R_OK | W_OK);
+                if (result == -1) {
+                        printf("\e[31m%s does not have rw permissions "
+                               "or does not exist\n\e[0m", argv[1]);
+                        exit(0);
                 }
-                // printf("\e[35mdrew %d %d %d\n\e[0m", curr_x, curr_y, curr_z);
+                char *p_extension = strrchr(argv[1], '.');
+                if (p_extension == NULL || strcmp(p_extension, ".db")) {
+                        printf("\e[31m%s not a database file\n\e[0m", argv[1]); 
+                        exit(0);
+                }
+
+                result = sqlite3_open(argv[1], &db);
+                printf("\e[35mloading %s\n\e[0m", argv[1]);
+                break;
+        default:
+                printf("\e[35musage: ./main [\e[4mdatabase.db\e[24m]\n\e[0m");
+                exit(0);
         }
+
+        if (result != SQLITE_OK) { 
+                printf("\e[31mdatabase load error: %s\n\e[0m", sqlite3_errmsg(db));
+                sqlite3_close(db);
+                exit(1);
+        }
+
+        return db;
 }

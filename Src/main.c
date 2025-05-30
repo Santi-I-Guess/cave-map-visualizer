@@ -1,24 +1,20 @@
 #include <stdbool.h>
 #include <stdio.h> // printf(), tmpfile()
-#include <unistd.h> // access()
 #include <math.h> // atan2()
 
 #include "raylib.h"
 #include "../Include/main.h" // get_data_file()
 #include "../Include/camera.h" // control_camera()
-#include "../Include/nodes.h" // draw_checkpoints()
-#include "../Include/sqlite3.h"
-
-#define MAX_CHECKPOINTS 1024
+#include "../Include/nodes.h"
+#include "../Include/sqlite3.h" 
 
 const int width = 1280;
 const int height = 800;
 
-int main(int argc, char *argv[]) {
-        FILE *data_file = get_data_file(argc, argv);
-        if (!data_file)
-                return 1;
+int main(int argc, char **argv) { 
+        sqlite3 *db = database_open(argc, argv);
 
+        // check if no file or database
         const char title[80] = "Cave Mapping Visualizer";
         InitWindow(width, height, title);
         Font dtm = LoadFont("/usr/share/fonts/JetBrains/JetBrainsMonoNerdFont-Medium.ttf");
@@ -30,8 +26,8 @@ int main(int argc, char *argv[]) {
                 .projection = CAMERA_PERSPECTIVE
         };
 
-        // shits and giggles
-        Vector3 sphere = { 5, 3, 0 };
+        // same as GREEN, but half transparent
+        Color SEMIGREEN = { 0, 228, 48, 128 };
 
         bool exit_window_requested = false;
         Rectangle exit_button = { 10, 10, 30, 30 };
@@ -49,9 +45,8 @@ int main(int argc, char *argv[]) {
                 ClearBackground(LIGHTGRAY);
                 control_camera(&camera);
                 BeginMode3D(camera);
-                        DrawCube((Vector3){0, 0, 0}, 100, 0, 100, DARKGREEN);
+                        DrawCube((Vector3){0, 0, 0}, 100, 0, 100, SEMIGREEN);
                         DrawGrid(100, 1.0f);
-                        // draw_checkpoints(data_file);
                 EndMode3D(); 
                 DrawRectangleRec(exit_button, DARKGRAY); 
                 draw_stats(&camera, &dtm); // keep last
@@ -60,38 +55,8 @@ int main(int argc, char *argv[]) {
         
         UnloadFont(dtm);
         CloseWindow();
-        fclose(data_file);
+        sqlite3_close(db);
         return 0;
-}
-
-FILE *get_data_file(int argc, char *argv[]) {
-        FILE *data_file;
-
-        if (argc > 2 || argc < 1) { // prevents -Wmaybe-uninitialized
-                printf("\e[31mGiven wrong amount of arguments (>1)\n\e[0m");
-                return NULL;
-        }
-
-        if (argc == 1) {
-                printf("\e[35mStarting with raw file\n\e[0m");
-                data_file = tmpfile();
-                if (!data_file) {
-                        printf("\e[31mFailed to make temp file\n\e[0m");
-                        return NULL;
-                }
-        } else if (argc == 2) {
-                if (access(argv[1], R_OK | W_OK) == -1) {
-                        printf("\e[31mFile can't be accessed\n\3[0m");
-                        return NULL;
-                }
-                data_file = fopen(argv[1], "r+");
-                if (!data_file) {
-                        printf("\e[31mFile couldn't be opened\n\e[0m");
-                        return NULL;
-                }
-                printf("\e[35mWorking with %s\e[0m\n", argv[1]);
-        }
-        return data_file;
 }
 
 void draw_stats(Camera *camera, Font *le_font) {
