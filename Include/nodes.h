@@ -13,6 +13,13 @@ typedef struct {
         Color color;
 } Node;
 
+typedef struct {
+        Node *first;
+        Node *second;
+        Color color;
+} Connection;
+
+void create_tables(sqlite3 *db);
 sqlite3 *database_open(int argc, char **argv);
 
 #endif

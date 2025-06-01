@@ -3,8 +3,7 @@
 CC := gcc
 CFLAGS := -lraylib -lm -Wextra -O1 
 
-SRCFILES := Src/main.c Src/camera.c Src/nodes.c
-INCFILES := Include/camera.h Include/nodes.h # just in case
+SRCFILES := Src/*
 
 all: $(SRCFILES)
-	$(CC) $(SRCFILES) Include/sqlite3.o -o main $(CFLAGS)
+	$(CC) $(SRCFILES) -o main $(CFLAGS)

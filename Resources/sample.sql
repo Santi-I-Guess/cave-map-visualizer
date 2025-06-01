@@ -6,12 +6,14 @@ CREATE TABLE nodes (
     x_coord INTEGER NOT NULL,
     y_coord INTEGER NOT NULL,
     z_coord INTEGER NOT NULL,
+    label TEXT,
     PRIMARY KEY (node_id)
 );
  CREATE TABLE connections (
     connection_id INTEGER AUTO_INCREMENT NOT NULL,
     first_point INTEGER NOT NULL,
     second_point INTEGER NOT NULL,
+    label TEXT,
     PRIMARY KEY (connection_id),
     FOREIGN KEY (first_point) REFERENCES nodes(node_id),
     FOREIGN KEY (second_point) REFERENCES nodes(node_id)
